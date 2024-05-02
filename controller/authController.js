@@ -55,7 +55,7 @@ class authController {
             });
 
         } catch(e) {
-            res.status(400).json({message: e.message})
+            res.status(403).json({message: e.message})
         }
     }
     async getUsers (req, res) {
