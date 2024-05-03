@@ -51,7 +51,8 @@ class authController {
 
             const token = generateAccessToken(user._id);
             return res.status(200).json({
-                token
+                token,
+                authorized: true
             });
 
         } catch(e) {
