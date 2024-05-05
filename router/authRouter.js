@@ -10,6 +10,9 @@ router.post('/registration',[
     check('username', 'Пароль должен содержать больше 4 символов').isLength({ min: 4 })],
     controller.registration)
 router.post('/login', controller.login)
-router.get('/users', authMiddleware, controller.getUsers)
+router.get('/verify', authMiddleware, controller.verifyToken)
+router.post('/addDocument', controller.addDocument);
+router.get('/getDocuments', authMiddleware, controller.getDocuments)
+router.post('/changeTitle', authMiddleware, controller.changeDocumentTitle)
 
 module.exports = router
