@@ -35,6 +35,7 @@ class authController {
             const rawState = convertToRaw(editorState.getCurrentContent());
             
             const documentState = {
+                id: crypto.randomUUID(),
                 title: "Новый текстовый документ",
                 document: rawState
             }
@@ -42,9 +43,11 @@ class authController {
             const jsonDocument = JSON.stringify(documentState)
 
             const user = new User({username: username, password: hashPassword, documents: [jsonDocument]})
-            await user.save()
+            user.save()
 
-            return res.status(200).json({message: "user has been registered"})
+            return res.status(200).json({
+               message: "user has been registered"
+            })
         } catch(e) {
             res.status(400).json({message: e.message})
         }
@@ -194,7 +197,6 @@ class authController {
                 }
                 return true
             })
-
             user.documents = newDocuments.map((doc) => JSON.stringify(doc))
             user.save()
             
@@ -207,24 +209,34 @@ class authController {
     }
 
     async saveDocument (req, res) {
-        const { id, document: newData, username } = req.body;
+
+        try {
+            const { id, document: newData, username } = req.body;
         
-        const user = await User.findOne({
-            username: username
-        })
+            const user = await User.findOne({
+                username: username
+            })
 
-        const documents = user.documents.map(el => JSON.parse(el));
-        const newDocuments = documents.map(doc => {
-            const temp = Object.assign({}, doc)
-            if(temp.id === id) {
-                temp.document = newData;
-            } 
-            return temp
-        })
+            const documents = user.documents.map(el => JSON.parse(el));
+            const newDocuments = documents.map(doc => {
+                const temp = Object.assign({}, doc)
+                if(temp.id === id) {
+                    temp.document = newData;
+                } 
+                return temp
+            })
 
-        console.log(newDocuments)
-        user.documents = newDocuments.map((doc) => JSON.stringify(doc))
-        user.save()
+            user.documents = newDocuments.map((doc) => JSON.stringify(doc))
+            user.save()
+            
+            return res.status(200).json({
+                message: "document.saved"
+            })
+        
+        } catch (e) {
+            console.log(e)
+            return res.status(401)
+        }
     }
 }
 
