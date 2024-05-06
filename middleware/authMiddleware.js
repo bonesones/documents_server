@@ -7,7 +7,6 @@ module.exports = function (req, res, next) {
     }
 
     try {
-        console.log(req.headers)
         const token = req.headers.authorization.split(' ')[1]
 
         if(!token) {
@@ -15,8 +14,6 @@ module.exports = function (req, res, next) {
         }
 
         const decodedData = jwt.verify(token, secret)
-
-        console.log(decodedData)
         req.user = decodedData;
         next()
 

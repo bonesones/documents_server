@@ -4,6 +4,7 @@ const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { validationResult } = require('express-validator')
 const { EditorState, convertToRaw } = require('draft-js')
+const crypto = require('crypto')
 
 const generateAccessToken = function(id) {
     const payload = { id };
@@ -128,7 +129,7 @@ class authController {
             const editorState = EditorState.createEmpty();
             const rawState = convertToRaw(editorState.getCurrentContent());
             const documentState = {
-                id: user.documents.length + 1,
+                id: crypto.randomUUID(),
                 title: "Новый текстовый документ",
                 document: rawState
             }
@@ -140,11 +141,6 @@ class authController {
                 username: username
             })
 
-            console.log(user2)
-
-            console.log(user)
-        
-
             return res.status(200).json({
                 message: "Документ добавлен"
             })
@@ -154,15 +150,23 @@ class authController {
         }
     }
 
-    async changeDocumentTitle () {
+    async changeDocumentTitle (req, res) {
         try {
             const { id, newTitle, username } = req.body;
             const user = await User.findOne({
                 username: username
             })
-            const documentIndex = user.documents.findIndex(doc => doc.id === id);
+
+            const documents = user.documents.map(el => JSON.parse(el));
+            const newDocuments = documents.map(doc => {
+                const temp = Object.assign({}, doc)
+                if(temp.id === id) {
+                    temp.title = newTitle;
+                }
+                return temp
+            })
             
-            user.documents[documentIndex].title = newTitle;
+            user.documents = newDocuments.map((doc) => JSON.stringify(doc))
             user.save()
 
             return res.status(200).json({
@@ -172,6 +176,55 @@ class authController {
             console.log(e)
             return res.status(401)
         }
+    }
+
+    async removeDocument(req, res) {
+        try {
+            const { id, username } = req.body;
+
+            const user = await User.findOne({
+                username: username
+            })
+
+            const documents = user.documents.map(el => JSON.parse(el));
+
+            const newDocuments = documents.filter(doc => {
+                if(doc.id === id) {
+                    return false
+                }
+                return true
+            })
+
+            user.documents = newDocuments.map((doc) => JSON.stringify(doc))
+            user.save()
+            
+            return res.status(200).json({
+                message: "Document has been deleted"
+            })
+        } catch(e) {
+            console.log(e)
+        }
+    }
+
+    async saveDocument (req, res) {
+        const { id, document: newData, username } = req.body;
+        
+        const user = await User.findOne({
+            username: username
+        })
+
+        const documents = user.documents.map(el => JSON.parse(el));
+        const newDocuments = documents.map(doc => {
+            const temp = Object.assign({}, doc)
+            if(temp.id === id) {
+                temp.document = newData;
+            } 
+            return temp
+        })
+
+        console.log(newDocuments)
+        user.documents = newDocuments.map((doc) => JSON.stringify(doc))
+        user.save()
     }
 }
 

@@ -14,5 +14,7 @@ router.get('/verify', authMiddleware, controller.verifyToken)
 router.post('/addDocument', controller.addDocument);
 router.get('/getDocuments', authMiddleware, controller.getDocuments)
 router.post('/changeTitle', authMiddleware, controller.changeDocumentTitle)
+router.post('/removeDocument', authMiddleware, controller.removeDocument)
+router.post('/saveDocument', authMiddleware, controller.saveDocument)
 
 module.exports = router
