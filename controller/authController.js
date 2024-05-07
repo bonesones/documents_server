@@ -97,8 +97,13 @@ class authController {
                     documents: user.documents
                 })
             }
+
+            return res.status(200).json({
+                message: "token confirmed"
+            })
         } catch(e) {
             console.log(e)
+            return res.status(403)
         }
     }
 
@@ -137,12 +142,14 @@ class authController {
                 document: rawState
             }
             const jsonDocument = JSON.stringify(documentState)     
-            user.documents.push(jsonDocument)
+            user.documents.unshift(jsonDocument)
             user.save()
 
             const user2 = await User.findOne({
                 username: username
             })
+
+            console.log(user2.documents)
 
             return res.status(200).json({
                 message: "Документ добавлен"
