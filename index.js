@@ -10,6 +10,8 @@ app.use(express.json())
 app.use(cors())
 app.use('/auth', authRouter)
 
+console.log(PORT)
+
 
 const start = async () => {
     try {
@@ -23,5 +25,3 @@ const start = async () => {
 }
 
 start()
-
-export default app
