@@ -11,7 +11,7 @@ router.post('/registration',[
     controller.registration)
 router.post('/login', controller.login)
 router.get('/verify', authMiddleware, controller.verifyToken)
-router.post('/addDocument', controller.addDocument);
+router.post('/addDocument', authMiddleware, controller.addDocument);
 router.get('/getDocuments', authMiddleware, controller.getDocuments)
 router.post('/changeTitle', authMiddleware, controller.changeDocumentTitle)
 router.post('/removeDocument', authMiddleware, controller.removeDocument)

@@ -10,11 +10,9 @@ const generateAccessToken = function(id) {
     const payload = { id };
     
     return jwt.sign(payload, secret, {
-        expiresIn: "24h"
+        expiresIn: "2h"
     })
 }
-
-let count = 1
 
 class authController {
     async registration (req, res) {
@@ -84,19 +82,8 @@ class authController {
     }
     async verifyToken (req, res) {
         try {
-
-            const { username } = req.headers;
-
-            const user = await User.findOne({
-                username: username
-            })
-
-            if(user) {
-                res.status(200).json({
-                    message: "success",
-                    documents: user.documents
-                })
-            }
+            const token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.decode(token, secret)
 
             return res.status(200).json({
                 message: "token confirmed"
@@ -106,15 +93,12 @@ class authController {
             return res.status(403)
         }
     }
-
     async getDocuments (req, res) {
         try {
-            const username = req.headers.username;
+            const token = req.headers.authorization.split(' ')[1];
+            const { id } = jwt.decode(token, secret)
             
-            const user = await User.findOne({
-                username: username
-            });
-
+            const user = await User.findById(id)
 
             return res.status(200).json({
                 documents: user.documents
@@ -123,16 +107,11 @@ class authController {
             console.log(e);
         }
     }
-
     async addDocument (req, res) {
         try {
-            const { username } = req.body
+            const { id } = req.user
 
-            
-
-            const user = await User.findOne({
-                username
-            })
+            const user = await User.findById(id)
 
             const editorState = EditorState.createEmpty();
             const rawState = convertToRaw(editorState.getCurrentContent());
@@ -145,11 +124,6 @@ class authController {
             user.documents.unshift(jsonDocument)
             user.save()
 
-            const user2 = await User.findOne({
-                username: username
-            })
-
-            console.log(user2.documents)
 
             return res.status(200).json({
                 message: "Документ добавлен"
@@ -162,15 +136,14 @@ class authController {
 
     async changeDocumentTitle (req, res) {
         try {
-            const { id, newTitle, username } = req.body;
-            const user = await User.findOne({
-                username: username
-            })
+            const { newTitle, id: documentId } = req.body;
+            const { id } = req.user;
+            const user = await User.findById(id)
 
             const documents = user.documents.map(el => JSON.parse(el));
             const newDocuments = documents.map(doc => {
                 const temp = Object.assign({}, doc)
-                if(temp.id === id) {
+                if(temp.id === documentId) {
                     temp.title = newTitle;
                 }
                 return temp
@@ -190,16 +163,15 @@ class authController {
 
     async removeDocument(req, res) {
         try {
-            const { id, username } = req.body;
+            const { id: documentId } = req.body;
+            const { id } = req.user
 
-            const user = await User.findOne({
-                username: username
-            })
+            const user = await User.findById(id)
 
             const documents = user.documents.map(el => JSON.parse(el));
 
             const newDocuments = documents.filter(doc => {
-                if(doc.id === id) {
+                if(doc.id === documentId) {
                     return false
                 }
                 return true
@@ -216,18 +188,16 @@ class authController {
     }
 
     async saveDocument (req, res) {
-
         try {
-            const { id, document: newData, username } = req.body;
+            const { id: documentId, document: newData } = req.body;
+            const { id } = req.user
         
-            const user = await User.findOne({
-                username: username
-            })
+            const user = await User.findById(id)
 
             const documents = user.documents.map(el => JSON.parse(el));
             const newDocuments = documents.map(doc => {
                 const temp = Object.assign({}, doc)
-                if(temp.id === id) {
+                if(temp.id === documentId) {
                     temp.document = newData;
                 } 
                 return temp
@@ -239,7 +209,6 @@ class authController {
             return res.status(200).json({
                 message: "document.saved"
             })
-        
         } catch (e) {
             console.log(e)
             return res.status(401)
